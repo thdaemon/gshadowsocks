@@ -22,7 +22,8 @@
 
 static GtkWidget *defserver_menu;
 
-static int proxy_mode;
+static char need_update = 0;
+static int proxy_mode, ss_conn, sys_proxy;
 
 static void mevt_servers(GtkMenuItem *menuitem, gpointer user_data)
 {
@@ -37,6 +38,19 @@ static void mevt_quit(GtkMenuItem *menuitem, gpointer user_data)
 static void mevt_proxy_mode(GtkMenuItem *menuitem, gpointer user_data)
 {
 	proxy_mode = (long)user_data;
+	need_update = 1;
+}
+
+static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
+{
+	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
+	need_update = 1;
+}
+
+static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)
+{
+	sys_proxy = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
+	need_update = 1;
 }
 
 static GtkWidget *add_menu_item(GtkWidget *menu, gchar *lable, gpointer callback)
@@ -147,6 +161,8 @@ int main(int argc, char **argv)
 
 	kfile = conf_open(conff);
 	proxy_mode = conf_get_int(kfile, CONF_PROXY_MODE);
+	ss_conn = conf_get_int(kfile, CONF_SS_CONN);
+	sys_proxy = conf_get_int(kfile, CONF_SP_SET);
 
 	indicator = app_indicator_new("gshadowsock-tray-icon-id", "gshadowsocks",
 				      APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
@@ -156,8 +172,8 @@ int main(int argc, char **argv)
 
 	menu = gtk_menu_new();
 
-	add_menu_check_item(menu, "Connect shadowsocks proxy", NULL, FALSE);
-	add_menu_check_item(menu, "Set system proxy settings", NULL, FALSE);
+	add_menu_check_item(menu, "Connect shadowsocks proxy", mevt_ss_conn, ss_conn);
+	add_menu_check_item(menu, "Set system proxy settings", mevt_sys_proxy, sys_proxy);
 	add_menu_separator(menu);
 	tmp = add_menu_item(menu, "System proxy mode", NULL);
 	submenu = gtk_menu_new();
@@ -183,7 +199,11 @@ int main(int argc, char **argv)
 
 	gtk_main();
 
-	conf_set_int(kfile, CONF_PROXY_MODE, proxy_mode);
-	conf_close(kfile, conff);
+	if (need_update) {
+		conf_set_int(kfile, CONF_PROXY_MODE, proxy_mode);
+		conf_set_int(kfile, CONF_SS_CONN, ss_conn);
+		conf_set_int(kfile, CONF_SP_SET, sys_proxy);
+		conf_close(kfile, conff);
+	}
 	return 0;
 }
