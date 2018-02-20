@@ -16,6 +16,8 @@
 #include <gtk/gtk.h>
 #include <libappindicator/app-indicator.h>
 
+#include "config.h"
+
 #include "paths.h"
 #include "srvwin.h"
 #include "conf.h"
@@ -29,6 +31,22 @@ static int proxy_mode, ss_conn, sys_proxy;
 static void mevt_servers(GtkMenuItem *menuitem, gpointer user_data)
 {
 	srvwin_show();
+}
+
+static void mevt_about(GtkMenuItem *menuitem, gpointer user_data)
+{
+	GtkWidget *msgdialog;
+	msgdialog = gtk_message_dialog_new(NULL, 0, GTK_MESSAGE_INFO, GTK_BUTTONS_CLOSE,
+					   "gshadowsocks - version %s\n"
+					   "A free GTK+ frontend of the shadowsocks client.\n\n"
+					   "Homepage: https://github.com/thdaemon/gshadowsocks\n\n"
+					   "This program is distributed in the hope that it"
+					   " will be useful, but WITHOUT ANY WARRANTY.\n"
+					   "This software is licensed under the GNU GPLv3"
+					   " and you can also use newer versions license."
+					   , PROJECT_VERSION);
+	gtk_dialog_run(GTK_DIALOG(msgdialog));
+	gtk_widget_destroy(msgdialog);
 }
 
 static void mevt_quit(GtkMenuItem *menuitem, gpointer user_data)
@@ -128,7 +146,7 @@ int main(int argc, char **argv)
 	update_defserver_menu_list();
 	add_menu_item(menu, "Update GFWList", NULL);
 	add_menu_separator(menu);
-	add_menu_item(menu, "About", mevt_quit);
+	add_menu_item(menu, "About", mevt_about);
 	add_menu_item(menu, "Quit", mevt_quit);
 
 	app_indicator_set_menu(indicator, GTK_MENU(menu));
