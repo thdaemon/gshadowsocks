@@ -1,12 +1,11 @@
-PREFIX :=
-INSTALLDIR := /usr/bin
-INSTALLDIR_LIB := /usr/lib/gshadowsocks
-DATADIR := /usr/share/gshadowsocks
+PREFIX := /usr
+INSTALLDIR := /bin
+INSTALLDIR_LIB := /lib
+DATADIR := /share
 
 OBJS := main.o path.o conf.o menuhelper.o srvwin.o
 
 INSTALL_BINS := gssocks
-INSTALL_BINS_LIB := proxy-helper
 
 CROSS :=
 CC := gcc
@@ -41,19 +40,15 @@ config.h :
 	@false
 
 install : all
-	mkdir -p $(PREFIX)$(INSTALLDIR)
-	cp $(INSTALL_BINS) $(PREFIX)$(INSTALLDIR)/
-	chmod a+x $(INSTALL_BINS)
-	cp $(INSTALL_BINS) $(PREFIX)$(INSTALLDIR_LIB)/
-	chmod a+x $(INSTALL_BINS_LIB)
-	mkdir -p $(PREFIX)$(DATADIR)
-	cp share/* $(PREFIX)$(DATADIR)
+	install -p -D -m 0755 $(INSTALL_BINS) $(PREFIX)$(INSTALLDIR)
+	install -p -D -m 0755 lib/* $(PREFIX)$(INSTALLDIR_LIB)/
+	install -p -D -m 0644 share/* $(PREFIX)$(DATADIR)
 
 deb : all
 	./pkgsrc/mkdeb.sh
 
 defconfig :
-	./mkconfig.sh
+	./mkconfig.sh --prefix=/usr
 
 clean:
 	rm -f *.o gssocks config.h *.so
