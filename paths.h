@@ -9,8 +9,7 @@
 
 extern char *workdir;
 extern char *srvdir;
-
-#define CONFIG_FILE_NAME "conf"
+extern char *conff;
 
 void path_init();
 

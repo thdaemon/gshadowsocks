@@ -19,17 +19,24 @@
 
 char *workdir;
 char *srvdir;
+char *conff;
 
 void path_init()
 {
 	const char *confdir = g_get_user_config_dir();
 	const char *suffix = "/gshadowsocks/";
 	const char *sev_suffix = "servers/";
+	const char *conf_suffix = "conf";
+
 	size_t len = strlen(confdir) + strlen(suffix) + 1;
 	workdir = malloc(len);
 	snprintf(workdir, len, "%s%s", confdir, suffix);
 
-	len += strlen(sev_suffix);
-	srvdir = malloc(len);
-	snprintf(srvdir, len, "%s%s", workdir, sev_suffix);
+	size_t lenx = len + strlen(sev_suffix);
+	srvdir = malloc(lenx);
+	snprintf(srvdir, lenx, "%s%s", workdir, sev_suffix);
+
+	lenx = len + strlen(conf_suffix);
+	conff = malloc(lenx);
+	snprintf(conff, lenx, "%s%s", workdir, conf_suffix);
 }

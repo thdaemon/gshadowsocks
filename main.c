@@ -18,8 +18,11 @@
 
 #include "paths.h"
 #include "srvwin.h"
+#include "conf.h"
 
 static GtkWidget *defserver_menu;
+
+static int proxy_mode;
 
 static void mevt_servers(GtkMenuItem *menuitem, gpointer user_data)
 {
@@ -29,6 +32,11 @@ static void mevt_servers(GtkMenuItem *menuitem, gpointer user_data)
 static void mevt_quit(GtkMenuItem *menuitem, gpointer user_data)
 {
 	gtk_main_quit();
+}
+
+static void mevt_proxy_mode(GtkMenuItem *menuitem, gpointer user_data)
+{
+	proxy_mode = (long)user_data;
 }
 
 static GtkWidget *add_menu_item(GtkWidget *menu, gchar *lable, gpointer callback)
@@ -46,7 +54,8 @@ static GtkWidget *add_menu_item(GtkWidget *menu, gchar *lable, gpointer callback
 	return item;
 }
 
-static GtkWidget *add_menu_check_item(GtkWidget *menu, gchar *lable, gpointer callback, gboolean is_active)
+static GtkWidget *add_menu_check_item(GtkWidget *menu, gchar *lable, gpointer callback,
+				      gboolean is_active)
 {
 	GtkWidget *item;
 
@@ -64,7 +73,7 @@ static GtkWidget *add_menu_check_item(GtkWidget *menu, gchar *lable, gpointer ca
 }
 
 static GtkWidget *add_menu_radio_item(GtkWidget *menu, GSList **group, gchar *lable,
-			       gpointer callback, gboolean is_active)
+			       gpointer callback, gboolean is_active, gpointer udata)
 {
 	GtkWidget *item;
 
@@ -78,7 +87,7 @@ static GtkWidget *add_menu_radio_item(GtkWidget *menu, GSList **group, gchar *la
 	gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), is_active);
 
 	if (callback)
-		g_signal_connect(item, "activate", G_CALLBACK(callback), item);
+		g_signal_connect(item, "activate", G_CALLBACK(callback), udata);
 
 	gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);
 	gtk_widget_show(item);
@@ -95,7 +104,9 @@ static void add_menu_separator(GtkWidget *menu)
 
 void update_defserver_menu_list()
 {
+	int flag_have = 0;
 	GSList *group = NULL;
+	GtkWidget *submenu = gtk_menu_new();
 
 	DIR* dir;
 	struct dirent *dent;
@@ -105,8 +116,16 @@ void update_defserver_menu_list()
 
 	while ((dent = readdir(dir)) != NULL) {
 		if (dent->d_name[0] != '.') {
-			add_menu_radio_item(defserver_menu, &group, dent->d_name, NULL, FALSE);
+			add_menu_radio_item(submenu, &group, dent->d_name, NULL, FALSE, NULL);
+			flag_have = 1;
 		}
+	}
+
+	if (flag_have) {
+		gtk_widget_set_sensitive(defserver_menu, TRUE);
+		gtk_menu_item_set_submenu(GTK_MENU_ITEM(defserver_menu), submenu);
+	} else {
+		gtk_widget_set_sensitive(defserver_menu, FALSE);
 	}
 
 	closedir(dir);
@@ -114,6 +133,7 @@ void update_defserver_menu_list()
 
 int main(int argc, char **argv)
 {
+	GKeyFile *kfile;
 	AppIndicator *indicator;
 	GtkWidget *menu, *submenu;
 	GtkWidget *tmp;
@@ -124,7 +144,9 @@ int main(int argc, char **argv)
 	path_init();
 	mkdir(workdir, 0750);
 	mkdir(srvdir, 0750);
-	system("touch ~/.config/gshadowsocks/servers/test_unusable");
+
+	kfile = conf_open(conff);
+	proxy_mode = conf_get_int(kfile, CONF_PROXY_MODE);
 
 	indicator = app_indicator_new("gshadowsock-tray-icon-id", "gshadowsocks",
 				      APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
@@ -141,14 +163,14 @@ int main(int argc, char **argv)
 	submenu = gtk_menu_new();
 	gtk_menu_item_set_submenu(GTK_MENU_ITEM(tmp), submenu);
 	group = NULL;
-	add_menu_radio_item(submenu, &group, "PAC mode", NULL, TRUE);
-	add_menu_radio_item(submenu, &group, "Global", NULL, FALSE);
+	add_menu_radio_item(submenu, &group, "PAC mode", mevt_proxy_mode,
+			    (proxy_mode == PROXY_MODE_PAC), (gpointer)0);
+	add_menu_radio_item(submenu, &group, "Global", mevt_proxy_mode,
+			    (proxy_mode == PROXY_MODE_GLOBAL), (gpointer)1);
 	add_menu_separator(menu);
 	add_menu_item(menu, "Edit servers", mevt_servers);
 	tmp = add_menu_item(menu, "Set default server...", NULL);
-	submenu = gtk_menu_new();
-	gtk_menu_item_set_submenu(GTK_MENU_ITEM(tmp), submenu);
-	defserver_menu = submenu;
+	defserver_menu = tmp;
 	update_defserver_menu_list();
 	add_menu_item(menu, "Update GFWList", NULL);
 	add_menu_separator(menu);
@@ -157,10 +179,11 @@ int main(int argc, char **argv)
 
 	app_indicator_set_menu(indicator, GTK_MENU(menu));
 
-	//gtk_menu_item_set_label(GTK_MENU_ITEM(menuItem2), "asdasdasda");
-
 	gtk_widget_show_all(menu);
 
 	gtk_main();
+
+	conf_set_int(kfile, CONF_PROXY_MODE, proxy_mode);
+	conf_close(kfile, conff);
 	return 0;
 }

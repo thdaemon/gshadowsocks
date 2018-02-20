@@ -3,7 +3,7 @@ INSTALLDIR := /usr/bin
 INSTALLDIR_LIB := /usr/lib/gshadowsocks
 DATADIR := /usr/share/gshadowsocks
 
-OBJS := main.o path.o srvwin.o
+OBJS := main.o path.o conf.o srvwin.o
 
 INSTALL_BINS := gssocks
 INSTALL_BINS_LIB := proxy-helper
