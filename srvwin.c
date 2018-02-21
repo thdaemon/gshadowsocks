@@ -20,7 +20,7 @@
 static GtkWidget *servers_window = NULL;
 static GtkWidget *listbox;
 
-static create_edit_window()
+static void create_edit_window()
 {
 	GtkBuilder *builder = gtk_builder_new();
 	gtk_builder_add_from_file(builder, EDITWIN_GLADE_FILE_PATH, NULL);

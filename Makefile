@@ -40,9 +40,12 @@ config.h :
 	@false
 
 install : all
-	install -p -D -m 0755 $(INSTALL_BINS) $(PREFIX)$(INSTALLDIR)
-	install -p -D -m 0755 lib/* $(PREFIX)$(INSTALLDIR_LIB)/
-	install -p -D -m 0644 share/* $(PREFIX)$(DATADIR)
+	mkdir -p $(PREFIX)$(INSTALLDIR)/
+	cp $(INSTALL_BINS) $(PREFIX)$(INSTALLDIR)/
+	mkdir -p $(PREFIX)$(INSTALLDIR_LIB)/
+	cp -r lib/* $(PREFIX)$(INSTALLDIR_LIB)/
+	mkdir -p $(PREFIX)$(DATADIR)/
+	cp -r share/* $(PREFIX)$(DATADIR)/
 
 deb : all
 	./pkgsrc/mkdeb.sh

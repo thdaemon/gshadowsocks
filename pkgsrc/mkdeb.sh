@@ -15,7 +15,7 @@ name="${pkgname}-${arch}-${version}"
 rm -rf build-package/${name}_deb build-package/${name}.deb
 mkdir -p build-package/${name}_deb/DEBIAN
 
-make PREFIX="`pwd`/build-package/${name}_deb/" install
+make PREFIX="`pwd`/build-package/${name}_deb/usr" install
 
 cat > build-package/${name}_deb/DEBIAN/control << EOF
 Package: ${pkgname}
