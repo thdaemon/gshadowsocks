@@ -16,6 +16,7 @@
 #include <gtk/gtk.h>
 
 #include "paths.h"
+#include "core.h"
 
 static GtkWidget *servers_window = NULL;
 static GtkWidget *listbox;
@@ -51,7 +52,20 @@ void on_btn_add_clicked(GtkButton *button, gpointer user_data)
 
 void on_btn_del_clicked(GtkButton *button, gpointer user_data)
 {
+	GtkListBoxRow *row;
+	GtkWidget *label;
+	const gchar *server;
 
+	if ((row = gtk_list_box_get_selected_row(GTK_LIST_BOX(listbox))) == NULL) {
+		return;
+	}
+
+	label = gtk_bin_get_child(GTK_BIN(row));
+	server = gtk_label_get_text(GTK_LABEL(label));
+
+	core_server_del(server);
+
+	gtk_container_remove(GTK_CONTAINER(listbox), GTK_WIDGET(row));
 }
 
 void on_btn_edit_clicked(GtkButton *button, gpointer user_data)
