@@ -48,11 +48,12 @@
             <property name="can_focus">False</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="btn_add">
                 <property name="label" translatable="yes">Add</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btn_add_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -61,11 +62,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button2">
+              <object class="GtkButton" id="btn_del">
                 <property name="label" translatable="yes">Delete</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btn_del_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -74,11 +76,12 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button3">
+              <object class="GtkButton" id="btn_edit">
                 <property name="label" translatable="yes">Edit</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_btn_edit_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

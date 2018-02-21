@@ -27,10 +27,16 @@ static GtkWidget *defserver_menu;
 
 static char need_update = 0;
 static int proxy_mode, ss_conn, sys_proxy;
+static char *defserver;
 
 static void mevt_servers(GtkMenuItem *menuitem, gpointer user_data)
 {
 	srvwin_show();
+}
+
+static void mevt_gfwlist(GtkMenuItem *menuitem, gpointer user_data)
+{
+
 }
 
 static void mevt_about(GtkMenuItem *menuitem, gpointer user_data)
@@ -119,6 +125,7 @@ int main(int argc, char **argv)
 	proxy_mode = conf_get_int(kfile, CONF_PROXY_MODE);
 	ss_conn = conf_get_int(kfile, CONF_SS_CONN);
 	sys_proxy = conf_get_int(kfile, CONF_SP_SET);
+	defserver = conf_get_string(kfile, CONF_DEFAULT_SERVER);
 
 	indicator = app_indicator_new("gshadowsock-tray-icon-id", "gshadowsocks",
 				      APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
@@ -144,7 +151,7 @@ int main(int argc, char **argv)
 	tmp = add_menu_item(menu, "Set default server...", NULL);
 	defserver_menu = tmp;
 	update_defserver_menu_list();
-	add_menu_item(menu, "Update GFWList", NULL);
+	add_menu_item(menu, "Update GFWList", mevt_gfwlist);
 	add_menu_separator(menu);
 	add_menu_item(menu, "About", mevt_about);
 	add_menu_item(menu, "Quit", mevt_quit);
@@ -159,6 +166,7 @@ int main(int argc, char **argv)
 		conf_set_int(kfile, CONF_PROXY_MODE, proxy_mode);
 		conf_set_int(kfile, CONF_SS_CONN, ss_conn);
 		conf_set_int(kfile, CONF_SP_SET, sys_proxy);
+		conf_set_string(kfile, CONF_DEFAULT_SERVER, defserver);
 		conf_close(kfile, conff);
 	}
 	return 0;

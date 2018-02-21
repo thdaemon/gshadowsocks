@@ -34,6 +34,17 @@ void conf_set_int(GKeyFile *kfile, const gchar *key, gint value)
 	g_key_file_set_integer(kfile, "conf", key, value);
 }
 
+char *conf_get_string(GKeyFile *kfile, const gchar *key)
+{
+	return g_key_file_get_value(kfile, "conf", key, NULL);
+}
+
+void conf_set_string(GKeyFile *kfile, const gchar *key, gchar *value)
+{
+	if (value != NULL)
+		g_key_file_set_value(kfile, "conf", key, value);
+}
+
 gboolean conf_close(GKeyFile *kfile, const gchar *file)
 {
 	gboolean ret;

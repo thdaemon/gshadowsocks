@@ -20,6 +20,21 @@
 static GtkWidget *servers_window = NULL;
 static GtkWidget *listbox;
 
+static create_edit_window()
+{
+	GtkBuilder *builder = gtk_builder_new();
+	gtk_builder_add_from_file(builder, EDITWIN_GLADE_FILE_PATH, NULL);
+	gtk_builder_connect_signals(builder, NULL);
+
+	GtkWidget *edit_window = GTK_WIDGET(gtk_builder_get_object(builder, "edit_window"));
+
+	gtk_widget_show_all(edit_window);
+	gtk_window_set_transient_for(GTK_WINDOW(edit_window), GTK_WINDOW(servers_window));
+	gtk_window_set_modal(GTK_WINDOW(edit_window), TRUE);
+
+	g_object_unref(builder);
+}
+
 gboolean on_servers_window_delete_event(GtkWidget *widget,
 				        GdkEvent *event, gpointer data)
 {
@@ -27,6 +42,21 @@ gboolean on_servers_window_delete_event(GtkWidget *widget,
 	return FALSE;
 	//gtk_widget_hide(widget);
 	//return TRUE;
+}
+
+void on_btn_add_clicked(GtkButton *button, gpointer user_data)
+{
+	create_edit_window();
+}
+
+void on_btn_del_clicked(GtkButton *button, gpointer user_data)
+{
+
+}
+
+void on_btn_edit_clicked(GtkButton *button, gpointer user_data)
+{
+
 }
 
 static void add_listbox_item(GtkWidget *lb, gchar *text)

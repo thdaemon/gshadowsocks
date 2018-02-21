@@ -13,6 +13,8 @@
 GKeyFile *conf_open(const gchar *file);
 int conf_get_int(GKeyFile *kfile, const gchar *key);
 void conf_set_int(GKeyFile *kfile, const gchar *key, gint value);
+char *conf_get_string(GKeyFile *kfile, const gchar *key);
+void conf_set_string(GKeyFile *kfile, const gchar *key, gchar *value);
 gboolean conf_close(GKeyFile *kfile, const gchar *file);
 
 #endif /* __CONF_H_ */
