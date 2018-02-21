@@ -20,7 +20,7 @@ make PREFIX=/opt/gshadowsocks install
 
 Makefile script will install the whole program and its file to `/opt/gshadowsocks`.
 
-### 
+### Tips and Hacks
 
 Why do I separate these two variables? Considering that you are compiling this software for another system (not compiling for the current host), `PREFIX` provides a way to allow you to set the target system's location (root filesystem). Looks like this:
 
@@ -30,9 +30,9 @@ make
 make PREFIX=/home/me/new_system_root/usr install
 ```
 
-In this way, the software will be installed to `/home/me/new_system_root/usr/...`, but the program still references `/usr/...`. This makes it easy to install the software on another system without any other modifications.
+In this way, the software will be installed to `/home/me/new_system_root/usr/...`, but the program still references `/usr/...`. This makes it easy to install the software on target system (not current host system) without any other modifications.
 
-And `--prefix=` solves another problem. Sometimes you do not want to install the software in the system's `/usr` directory. For example, you are more inclined to use `/opt/${software_name}`. Unlike Linux users, FreeBSD users prefer to install third-party software to the `/usr/local` directory. At this point, the resource file path which referenced in the program needs to be updated. `--prefix=` is done this.
+And `--prefix=` solves another problem. Sometimes you do not want to install the software in the system's `/usr` directory. For example, you are more inclined to use `/opt/${software_name}`. Unlike GNU/Linux users, FreeBSD users prefer to install third-party software to the `/usr/local` directory. At the point, the resource file path which referenced in the program needs to be updated. `--prefix=` will done this.
 
 ```
 ./mkconfig.sh --prefix=/opt/gshadowsocks
@@ -40,7 +40,7 @@ make
 make PREFIX=/opt/gshadowsocks install
 ```
 
-There is another interesting usage. If you want to directly run the compiled binary in the source tree, you only have to do this to get the program to find the correct resource file path. Because the resource file in source tree is organized according to the standard rules and the `pwd` utility print the current directory. This may be useful in debugging the program.
+There is another interesting usage. If you want to directly run the compiled binary in the source tree, you only need to do this to let the program find the correct resource file path. Because the resource file in source tree is organized according to the standard rules and the `pwd` utility prints the current directory. This may be useful in debugging the program.
 
 ```
 ./mkconfig.sh --prefix=`pwd`
