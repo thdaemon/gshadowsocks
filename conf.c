@@ -39,7 +39,7 @@ char *conf_get_string(GKeyFile *kfile, const gchar *key)
 	return g_key_file_get_value(kfile, "conf", key, NULL);
 }
 
-void conf_set_string(GKeyFile *kfile, const gchar *key, gchar *value)
+void conf_set_string(GKeyFile *kfile, const gchar *key, const gchar *value)
 {
 	if (value != NULL)
 		g_key_file_set_value(kfile, "conf", key, value);

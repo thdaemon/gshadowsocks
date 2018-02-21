@@ -21,56 +21,31 @@
 static GtkWidget *servers_window = NULL;
 static GtkWidget *listbox;
 
-static void create_edit_window()
+static GtkWidget *edit_window = NULL;
+static GtkWidget *nick, *srvaddr, *srvport, *localport, *passwd, *method;
+
+static void create_edit_window(const char *srvname)
 {
-	GtkBuilder *builder = gtk_builder_new();
+	GtkBuilder *builder;
+
+	builder = gtk_builder_new();
 	gtk_builder_add_from_file(builder, EDITWIN_GLADE_FILE_PATH, NULL);
 	gtk_builder_connect_signals(builder, NULL);
 
-	GtkWidget *edit_window = GTK_WIDGET(gtk_builder_get_object(builder, "edit_window"));
+	edit_window = GTK_WIDGET(gtk_builder_get_object(builder, "edit_window"));
+
+	nick = GTK_WIDGET(gtk_builder_get_object(builder, "nickname"));
+	srvaddr = GTK_WIDGET(gtk_builder_get_object(builder, "srvaddr"));
+	srvport = GTK_WIDGET(gtk_builder_get_object(builder, "srvport"));
+	localport = GTK_WIDGET(gtk_builder_get_object(builder, "localport"));
+	passwd = GTK_WIDGET(gtk_builder_get_object(builder, "passwd"));
+	method = GTK_WIDGET(gtk_builder_get_object(builder, "method"));
 
 	gtk_widget_show_all(edit_window);
 	gtk_window_set_transient_for(GTK_WINDOW(edit_window), GTK_WINDOW(servers_window));
 	gtk_window_set_modal(GTK_WINDOW(edit_window), TRUE);
 
 	g_object_unref(builder);
-}
-
-gboolean on_servers_window_delete_event(GtkWidget *widget,
-				        GdkEvent *event, gpointer data)
-{
-	servers_window = NULL;
-	return FALSE;
-	//gtk_widget_hide(widget);
-	//return TRUE;
-}
-
-void on_btn_add_clicked(GtkButton *button, gpointer user_data)
-{
-	create_edit_window();
-}
-
-void on_btn_del_clicked(GtkButton *button, gpointer user_data)
-{
-	GtkListBoxRow *row;
-	GtkWidget *label;
-	const gchar *server;
-
-	if ((row = gtk_list_box_get_selected_row(GTK_LIST_BOX(listbox))) == NULL) {
-		return;
-	}
-
-	label = gtk_bin_get_child(GTK_BIN(row));
-	server = gtk_label_get_text(GTK_LABEL(label));
-
-	core_server_del(server);
-
-	gtk_container_remove(GTK_CONTAINER(listbox), GTK_WIDGET(row));
-}
-
-void on_btn_edit_clicked(GtkButton *button, gpointer user_data)
-{
-
 }
 
 static void add_listbox_item(GtkWidget *lb, gchar *text)
@@ -91,6 +66,69 @@ static void add_listbox_item(GtkWidget *lb, gchar *text)
 	gtk_list_box_insert(GTK_LIST_BOX(lb), row, -1);
 
 	gtk_widget_show_all(row);
+}
+
+gboolean on_servers_window_delete_event(GtkWidget *widget,
+				        GdkEvent *event, gpointer data)
+{
+	servers_window = NULL;
+	return FALSE;
+	//gtk_widget_hide(widget);
+	//return TRUE;
+}
+
+void on_btn_add_clicked(GtkButton *button, gpointer user_data)
+{
+	create_edit_window(NULL);
+}
+
+void on_btn_del_clicked(GtkButton *button, gpointer user_data)
+{
+	GtkListBoxRow *row;
+	GtkWidget *label;
+	const gchar *server;
+
+	if ((row = gtk_list_box_get_selected_row(GTK_LIST_BOX(listbox))) == NULL) {
+		return;
+	}
+
+	label = gtk_bin_get_child(GTK_BIN(row));
+	server = gtk_label_get_text(GTK_LABEL(label));
+
+	if (core_server_del(server) == 0) {
+		gtk_container_remove(GTK_CONTAINER(listbox), GTK_WIDGET(row));
+	}
+}
+
+void on_btn_edit_clicked(GtkButton *button, gpointer user_data)
+{
+	GtkListBoxRow *row;
+	GtkWidget *label;
+
+	if ((row = gtk_list_box_get_selected_row(GTK_LIST_BOX(listbox))) == NULL) {
+		return;
+	}
+
+	label = gtk_bin_get_child(GTK_BIN(row));
+	create_edit_window(gtk_label_get_text(GTK_LABEL(label)));
+}
+
+void on_edit_btn_ok_clicked(GtkButton *button, gpointer user_data)
+{
+	const char *_nick = gtk_entry_get_text(GTK_ENTRY(nick));
+	const char *_srvaddr = gtk_entry_get_text(GTK_ENTRY(srvaddr));
+	const char *_srvport = gtk_entry_get_text(GTK_ENTRY(srvport));
+	const char *_localport = gtk_entry_get_text(GTK_ENTRY(localport));
+	const char *_passwd = gtk_entry_get_text(GTK_ENTRY(passwd));
+	const char *_method = "";
+	core_server_add(_nick, _srvaddr, _srvport, _localport, _passwd, _method);
+
+	gtk_window_close(GTK_WINDOW(edit_window));
+}
+
+void on_edit_btn_cancel_clicked(GtkButton *button, gpointer user_data)
+{
+	gtk_window_close(GTK_WINDOW(edit_window));
 }
 
 int srvwin_oncreate(GtkWidget *window)

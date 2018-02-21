@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# only for gnome, unity, etc.
+
+socks="$2"
+port="$3"
+
+clear_proxy()
+{
+	gsettings set org.gnome.system.proxy mode 'none'
+	return $?
+}
+
+set_proxy_pac()
+{
+	gsettings set org.gnome.system.proxy autoconfig-url
+	gsettings set org.gnome.system.proxy mode 'auto'
+	return $?
+}
+
+set_proxy_global()
+{
+	gsettings set org.gnome.system.proxy.http host ''
+	gsettings set org.gnome.system.proxy.http port ''
+	gsettings set org.gnome.system.proxy.https host ''
+	gsettings set org.gnome.system.proxy.https port ''
+	gsettings set org.gnome.system.proxy.ftp host ''
+	gsettings set org.gnome.system.proxy.ftp port ''
+	gsettings set org.gnome.system.proxy.socks host "$socks"
+	gsettings set org.gnome.system.proxy.socks port "$port"
+
+	gsettings set org.gnome.system.proxy mode 'manual'
+	return $?
+}
+
+
+case $1 in
+'-1')
+	clear_proxy
+	exit $?
+	;;
+'0')
+	set_proxy_pac
+	exit $?
+	;;
+'1')
+	set_proxy_global
+	exit $?
+	;;
+esac
+

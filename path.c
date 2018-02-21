@@ -25,7 +25,7 @@ void path_init()
 {
 	const char *confdir = g_get_user_config_dir();
 	const char *suffix = "/gshadowsocks/";
-	const char *sev_suffix = "servers/";
+	const char *sev_suffix = "servers";
 	const char *conf_suffix = "conf";
 
 	size_t len = strlen(confdir) + strlen(suffix) + 1;
