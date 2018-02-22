@@ -27,11 +27,35 @@ static GtkWidget *defserver_menu;
 
 static char need_update = 0;
 static int proxy_mode, ss_conn, sys_proxy;
-static char *defserver;
+static const char *defserver;
+
+static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
+{
+	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
+	need_update = 1;
+}
+
+static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)
+{
+	sys_proxy = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
+	need_update = 1;
+}
+
+static void mevt_proxy_mode(GtkMenuItem *menuitem, gpointer user_data)
+{
+	proxy_mode = (long)user_data;
+	need_update = 1;
+}
 
 static void mevt_servers(GtkMenuItem *menuitem, gpointer user_data)
 {
 	srvwin_show();
+}
+
+static void mevt_defserv(GtkMenuItem *menuitem, gpointer user_data)
+{
+	defserver = gtk_menu_item_get_label(menuitem);
+	need_update = 1;
 }
 
 static void mevt_gfwlist(GtkMenuItem *menuitem, gpointer user_data)
@@ -60,48 +84,49 @@ static void mevt_quit(GtkMenuItem *menuitem, gpointer user_data)
 	gtk_main_quit();
 }
 
-static void mevt_proxy_mode(GtkMenuItem *menuitem, gpointer user_data)
-{
-	proxy_mode = (long)user_data;
-	need_update = 1;
-}
-
-static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
-{
-	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
-	need_update = 1;
-}
-
-static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)
-{
-	sys_proxy = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
-	need_update = 1;
-}
-
 void update_defserver_menu_list()
 {
-	int flag_have = 0;
+	int flag_first = 0;
+	int flag_have_item = 0;
+	int flag_have_defserver = 0;
 	GSList *group = NULL;
 	GtkWidget *submenu = gtk_menu_new();
 
 	DIR* dir;
 	struct dirent *dent;
+	struct dirent first;
 
 	if ((dir = opendir(srvdir)) == NULL)
 		return;
 
 	while ((dent = readdir(dir)) != NULL) {
 		if (dent->d_name[0] != '.') {
-			add_menu_radio_item(submenu, &group, dent->d_name, NULL, FALSE, NULL);
-			flag_have = 1;
+			gboolean checked = FALSE;
+
+			if (flag_first == 0) {
+				flag_first = 1;
+				first = *dent;
+			}
+
+			if (strcmp(dent->d_name, defserver) == 0) {
+				flag_have_defserver = 1;
+				checked = TRUE;
+			}
+
+			add_menu_radio_item(submenu, &group, dent->d_name, mevt_defserv, checked, NULL);
+			flag_have_item = 1;
 		}
 	}
 
-	if (flag_have) {
+	if (flag_have_item) {
 		gtk_widget_set_sensitive(defserver_menu, TRUE);
 		gtk_menu_item_set_submenu(GTK_MENU_ITEM(defserver_menu), submenu);
 	} else {
 		gtk_widget_set_sensitive(defserver_menu, FALSE);
+	}
+
+	if (!flag_have_defserver && flag_have_item) {
+		defserver = first.d_name;
 	}
 
 	closedir(dir);
