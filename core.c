@@ -18,6 +18,8 @@
 #include "paths.h"
 #include "conf.h"
 
+GSubprocess *ssproc = NULL;
+
 int core_server_del(const char *srvname)
 {
 	int fd, ret;
@@ -64,4 +66,104 @@ int core_server_exists(const char *srvname)
 	close(fd);
 
 	return ret;
+}
+
+static struct json_row {
+	const char *name;
+	const char *value;
+	char quotes;
+} rows[] = {
+	{ "server", NULL, 1 },
+	{ "server_port", NULL, 0 },
+	{ "local_address", "127.0.0.1", 1 },
+	{ "local_port", NULL, 0 },
+	{ "password", NULL, 1 },
+	{ "method", NULL, 1 },
+	{ "timeout", "300", 0 },
+	{ "fast_open", "false", 0 }
+};
+
+static char *json_gen()
+{
+	size_t len = 3;
+	size_t n;
+	char *buf;
+
+	n = sizeof(rows)/sizeof(rows[0]);
+
+	for (int i = 0; i < n; i++) {
+		len = len + strlen(rows[i].name) + 6
+		      + strlen(rows[i].value)
+		      + ((rows[i].quotes) ? 2 : 0);
+	}
+
+	if ((buf = malloc(len)) == NULL) {
+		return NULL;
+	} else {
+		buf[0] = '\0';
+		buf = strcat(buf, "{\n");
+		for (int i = 0; i < n; i++) {
+			buf = strcat(buf, "\t\"");
+			buf = strcat(buf, rows[i].name);
+			buf = strcat(buf, "\":");
+			if (rows[i].quotes)
+				buf = strcat(buf, "\"");
+			buf = strcat(buf, rows[i].value);
+			if (rows[i].quotes)
+				buf = strcat(buf, "\"");
+			buf = strcat(buf, (i+1 == n) ? "\n" : ",\n");
+		}
+		buf = strcat(buf, "}");
+		return buf;
+	}
+}
+
+int core_sconf_gen(const char *srvname)
+{
+	char path[2048];
+	GKeyFile *kfile;
+	char *json;
+	gboolean ret;
+
+	snprintf(path, 2048, "%s/%s", srvdir, srvname);
+
+	kfile = conf_open(path);
+
+	rows[0].value = conf_get_string(kfile, SERVER_ADDR);
+	rows[1].value = conf_get_string(kfile, SERVER_PORT);
+	rows[3].value = conf_get_string(kfile, SERVER_LOCAL_PORT);
+	rows[4].value = conf_get_string(kfile, SERVER_PASSWD);
+	rows[5].value = conf_get_string(kfile, SERVER_METHOD);
+
+	conf_close(kfile, NULL);
+
+	snprintf(path, 2048, "%s/ssconf.gen", workdir);
+
+	json = json_gen();
+	ret = g_file_set_contents(path, json, -1, NULL);
+	free(json);
+
+	return ((ret == TRUE) ? 0 : -1);
+}
+
+int core_start_sslocal()
+{
+	char path[2048];
+
+	snprintf(path, 2048, "%sssconf.gen", workdir);
+	if (ssproc == NULL) {
+		ssproc = g_subprocess_new(G_SUBPROCESS_FLAGS_NONE, NULL,
+					  "ss-local", "-c", path, NULL);
+		return ((ssproc == NULL) ? -1 : 0);
+	} else {
+		return -1;
+	}
+}
+
+void core_stop_sslocal()
+{
+	if (ssproc) {
+		g_subprocess_send_signal(ssproc, SIGTERM);
+		g_subprocess_force_exit(ssproc);
+	}
 }

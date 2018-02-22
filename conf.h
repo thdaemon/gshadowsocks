@@ -23,4 +23,8 @@ char *conf_get_string(GKeyFile *kfile, const gchar *key);
 void conf_set_string(GKeyFile *kfile, const gchar *key, const gchar *value);
 gboolean conf_close(GKeyFile *kfile, const gchar *file);
 
+int core_sconf_gen(const char *srvname);
+int core_start_sslocal();
+void core_stop_sslocal();
+
 #endif /* __CONF_H_ */

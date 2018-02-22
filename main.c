@@ -33,6 +33,9 @@ static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
 {
 	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
 	need_update = 1;
+
+	core_sconf_gen(defserver);
+	core_start_sslocal();
 }
 
 static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)
@@ -90,11 +93,11 @@ void update_defserver_menu_list()
 	int flag_have_item = 0;
 	int flag_have_defserver = 0;
 	GSList *group = NULL;
+	GtkWidget *first;
 	GtkWidget *submenu = gtk_menu_new();
 
 	DIR* dir;
 	struct dirent *dent;
-	struct dirent first;
 
 	if ((dir = opendir(srvdir)) == NULL)
 		return;
@@ -103,17 +106,18 @@ void update_defserver_menu_list()
 		if (dent->d_name[0] != '.') {
 			gboolean checked = FALSE;
 
-			if (flag_first == 0) {
-				flag_first = 1;
-				first = *dent;
-			}
-
 			if (strcmp(dent->d_name, defserver) == 0) {
 				flag_have_defserver = 1;
 				checked = TRUE;
 			}
 
-			add_menu_radio_item(submenu, &group, dent->d_name, mevt_defserv, checked, NULL);
+			GtkWidget *item = add_menu_radio_item(submenu, &group, dent->d_name, mevt_defserv, checked, NULL);
+
+			if (flag_first == 0) {
+				flag_first = 1;
+				first = item;
+			}
+
 			flag_have_item = 1;
 		}
 	}
@@ -126,7 +130,7 @@ void update_defserver_menu_list()
 	}
 
 	if (!flag_have_defserver && flag_have_item) {
-		defserver = first.d_name;
+		defserver = gtk_menu_item_get_label(GTK_MENU_ITEM(first));
 	}
 
 	closedir(dir);
