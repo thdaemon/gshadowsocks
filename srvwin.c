@@ -15,8 +15,11 @@
 
 #include <gtk/gtk.h>
 
+#include "srvwin.h"
 #include "paths.h"
 #include "core.h"
+
+void update_defserver_menu_list();    /* in main.c */
 
 static GtkWidget *servers_window = NULL;
 static GtkWidget *listbox;
@@ -24,31 +27,7 @@ static GtkWidget *listbox;
 static GtkWidget *edit_window = NULL;
 static GtkWidget *nick, *srvaddr, *srvport, *localport, *passwd, *method;
 
-static void create_edit_window(const char *srvname)
-{
-	GtkBuilder *builder;
-
-	builder = gtk_builder_new();
-	gtk_builder_add_from_file(builder, EDITWIN_GLADE_FILE_PATH, NULL);
-	gtk_builder_connect_signals(builder, NULL);
-
-	edit_window = GTK_WIDGET(gtk_builder_get_object(builder, "edit_window"));
-
-	nick = GTK_WIDGET(gtk_builder_get_object(builder, "nickname"));
-	srvaddr = GTK_WIDGET(gtk_builder_get_object(builder, "srvaddr"));
-	srvport = GTK_WIDGET(gtk_builder_get_object(builder, "srvport"));
-	localport = GTK_WIDGET(gtk_builder_get_object(builder, "localport"));
-	passwd = GTK_WIDGET(gtk_builder_get_object(builder, "passwd"));
-	method = GTK_WIDGET(gtk_builder_get_object(builder, "method"));
-
-	gtk_widget_show_all(edit_window);
-	gtk_window_set_transient_for(GTK_WINDOW(edit_window), GTK_WINDOW(servers_window));
-	gtk_window_set_modal(GTK_WINDOW(edit_window), TRUE);
-
-	g_object_unref(builder);
-}
-
-static void add_listbox_item(GtkWidget *lb, gchar *text)
+static void add_listbox_item(GtkWidget *lb, const gchar *text)
 {
 	GtkWidget *row = gtk_list_box_row_new();
 	GtkWidget *item = gtk_label_new(text);
@@ -66,6 +45,113 @@ static void add_listbox_item(GtkWidget *lb, gchar *text)
 	gtk_list_box_insert(GTK_LIST_BOX(lb), row, -1);
 
 	gtk_widget_show_all(row);
+}
+
+static void flush_list()
+{
+	DIR* dir;
+	struct dirent *dent;
+
+	if ((dir = opendir(srvdir)) == NULL)
+		return;
+
+	while ((dent = readdir(dir)) != NULL) {
+		if (dent->d_name[0] != '.') {
+			add_listbox_item(listbox, dent->d_name);
+		}
+	}
+
+	closedir(dir);
+}
+
+static void set_editwin_text(GtkWidget *row)
+{
+	GtkWidget *label;
+	const char *nickname;
+
+	label = gtk_bin_get_child(GTK_BIN(row));
+	nickname = gtk_label_get_text(GTK_LABEL(label));
+
+	gtk_entry_set_text(GTK_ENTRY(nick), nickname);
+}
+
+static void on_edit_btn_ok_clicked(GtkButton *button, gpointer user_data)
+{
+	const char *_nick = gtk_entry_get_text(GTK_ENTRY(nick));
+	const char *_srvaddr = gtk_entry_get_text(GTK_ENTRY(srvaddr));
+	const char *_srvport = gtk_entry_get_text(GTK_ENTRY(srvport));
+	const char *_localport = gtk_entry_get_text(GTK_ENTRY(localport));
+	const char *_passwd = gtk_entry_get_text(GTK_ENTRY(passwd));
+	const char *_method = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(method));
+
+	/* when edit window is showed by 'Add' button
+	 * Do not allow nickname exists
+	 */
+	if ((user_data == NULL) && (core_server_exists(_nick) == 0)) {
+		GtkWidget *msgdialog;
+		msgdialog = gtk_message_dialog_new(GTK_WINDOW(edit_window),
+						   GTK_DIALOG_MODAL,
+						   GTK_MESSAGE_WARNING,
+						   GTK_BUTTONS_CLOSE,
+						   "This nickname is exists.");
+		gtk_dialog_run(GTK_DIALOG(msgdialog));
+		gtk_widget_destroy(msgdialog);
+		return;
+	}
+
+	if (core_server_add(_nick, _srvaddr, _srvport, _localport, _passwd, _method) == 0) {
+		if (user_data == NULL) {
+			add_listbox_item(listbox, _nick);
+		}
+		update_defserver_menu_list();
+	}
+
+	gtk_window_close(GTK_WINDOW(edit_window));
+}
+
+void on_edit_btn_cancel_clicked(GtkButton *button, gpointer user_data)
+{
+	gtk_window_close(GTK_WINDOW(edit_window));
+}
+
+static void create_edit_window(GtkWidget *row)
+{
+	GtkBuilder *builder;
+	GtkWidget *okbutton;
+
+	builder = gtk_builder_new();
+	gtk_builder_add_from_file(builder, EDITWIN_GLADE_FILE_PATH, NULL);
+	gtk_builder_connect_signals(builder, NULL);
+
+	edit_window = GTK_WIDGET(gtk_builder_get_object(builder, "edit_window"));
+
+	okbutton = GTK_WIDGET(gtk_builder_get_object(builder, "edit_btn_ok"));
+	g_signal_connect(okbutton, "clicked", G_CALLBACK(on_edit_btn_ok_clicked), row);
+
+	nick = GTK_WIDGET(gtk_builder_get_object(builder, "nickname"));
+	srvaddr = GTK_WIDGET(gtk_builder_get_object(builder, "srvaddr"));
+	srvport = GTK_WIDGET(gtk_builder_get_object(builder, "srvport"));
+	localport = GTK_WIDGET(gtk_builder_get_object(builder, "localport"));
+	passwd = GTK_WIDGET(gtk_builder_get_object(builder, "passwd"));
+	method = GTK_WIDGET(gtk_builder_get_object(builder, "method"));
+
+	for (int i = 0; i < sizeof(methods)/sizeof(methods[0]); i++) {
+		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(method), NULL, methods[i]);
+	}
+
+	/* when edit window is showed by 'Edit' button.
+	 * Get nickname and read config to show
+	 */
+	if (row != NULL) {
+		gtk_widget_set_sensitive(nick, FALSE);
+		set_editwin_text(row);
+	}
+
+	gtk_widget_show(edit_window);
+	gtk_window_set_transient_for(GTK_WINDOW(edit_window), GTK_WINDOW(servers_window));
+	gtk_window_set_modal(GTK_WINDOW(edit_window), TRUE);
+
+	g_object_unref(builder);
 }
 
 gboolean on_servers_window_delete_event(GtkWidget *widget,
@@ -103,50 +189,12 @@ void on_btn_del_clicked(GtkButton *button, gpointer user_data)
 void on_btn_edit_clicked(GtkButton *button, gpointer user_data)
 {
 	GtkListBoxRow *row;
-	GtkWidget *label;
 
 	if ((row = gtk_list_box_get_selected_row(GTK_LIST_BOX(listbox))) == NULL) {
 		return;
 	}
 
-	label = gtk_bin_get_child(GTK_BIN(row));
-	create_edit_window(gtk_label_get_text(GTK_LABEL(label)));
-}
-
-void on_edit_btn_ok_clicked(GtkButton *button, gpointer user_data)
-{
-	const char *_nick = gtk_entry_get_text(GTK_ENTRY(nick));
-	const char *_srvaddr = gtk_entry_get_text(GTK_ENTRY(srvaddr));
-	const char *_srvport = gtk_entry_get_text(GTK_ENTRY(srvport));
-	const char *_localport = gtk_entry_get_text(GTK_ENTRY(localport));
-	const char *_passwd = gtk_entry_get_text(GTK_ENTRY(passwd));
-	const char *_method = "";
-	core_server_add(_nick, _srvaddr, _srvport, _localport, _passwd, _method);
-
-	gtk_window_close(GTK_WINDOW(edit_window));
-}
-
-void on_edit_btn_cancel_clicked(GtkButton *button, gpointer user_data)
-{
-	gtk_window_close(GTK_WINDOW(edit_window));
-}
-
-int srvwin_oncreate(GtkWidget *window)
-{
-	DIR* dir;
-	struct dirent *dent;
-
-	if ((dir = opendir(srvdir)) == NULL)
-		return -1;
-
-	while ((dent = readdir(dir)) != NULL) {
-		if (dent->d_name[0] != '.') {
-			add_listbox_item(listbox, dent->d_name);
-		}
-	}
-
-	closedir(dir);
-	return 0;
+	create_edit_window(GTK_WIDGET(row));
 }
 
 void srvwin_show()
@@ -161,7 +209,7 @@ void srvwin_show()
 		servers_window = GTK_WIDGET(gtk_builder_get_object(builder, "servers_window"));
 		listbox = GTK_WIDGET(gtk_builder_get_object(builder, "srvwin_listbox"));
 
-		srvwin_oncreate(servers_window);
+		flush_list();
 
 		g_object_unref(builder);
 	}

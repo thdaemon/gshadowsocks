@@ -51,3 +51,17 @@ int core_server_add(const char *srvname, const char *srvaddr,
 
 	return ((conf_close(kfile, path) == TRUE) ? 0 : -1);
 }
+
+int core_server_exists(const char *srvname)
+{
+	int fd, ret;
+
+	if ((fd = open(srvdir, O_DIRECTORY)) < 0) {
+		return ((errno == ENOENT) ? 0 : -1);
+	}
+
+	ret = faccessat(fd, srvname, F_OK, 0);
+	close(fd);
+
+	return ret;
+}
