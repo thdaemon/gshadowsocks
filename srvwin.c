@@ -17,6 +17,7 @@
 
 #include "srvwin.h"
 #include "paths.h"
+#include "conf.h"
 #include "core.h"
 
 void update_defserver_menu_list();    /* in main.c */
@@ -25,7 +26,7 @@ static GtkWidget *servers_window = NULL;
 static GtkWidget *listbox;
 
 static GtkWidget *edit_window = NULL;
-static GtkWidget *nick, *srvaddr, *srvport, *localport, *passwd, *method;
+static GtkWidget *nick, *srvaddr, *srvport, *localport, *passwd, *method, *method_entry;
 
 static void add_listbox_item(GtkWidget *lb, const gchar *text)
 {
@@ -68,11 +69,24 @@ static void set_editwin_text(GtkWidget *row)
 {
 	GtkWidget *label;
 	const char *nickname;
+	char path[2048];
+	GKeyFile *kfile;
 
 	label = gtk_bin_get_child(GTK_BIN(row));
 	nickname = gtk_label_get_text(GTK_LABEL(label));
 
 	gtk_entry_set_text(GTK_ENTRY(nick), nickname);
+
+	snprintf(path, 2048, "%s/%s", srvdir, nickname);
+	kfile = conf_open(path);
+
+	gtk_entry_set_text(GTK_ENTRY(srvaddr), conf_get_string(kfile, SERVER_ADDR));
+	gtk_entry_set_text(GTK_ENTRY(srvport), conf_get_string(kfile, SERVER_PORT));
+	gtk_entry_set_text(GTK_ENTRY(localport), conf_get_string(kfile, SERVER_LOCAL_PORT));
+	gtk_entry_set_text(GTK_ENTRY(passwd), conf_get_string(kfile, SERVER_PASSWD));
+	gtk_entry_set_text(GTK_ENTRY(method_entry), conf_get_string(kfile, SERVER_METHOD));
+
+	conf_close(kfile, NULL);
 }
 
 static void on_edit_btn_ok_clicked(GtkButton *button, gpointer user_data)
@@ -82,7 +96,8 @@ static void on_edit_btn_ok_clicked(GtkButton *button, gpointer user_data)
 	const char *_srvport = gtk_entry_get_text(GTK_ENTRY(srvport));
 	const char *_localport = gtk_entry_get_text(GTK_ENTRY(localport));
 	const char *_passwd = gtk_entry_get_text(GTK_ENTRY(passwd));
-	const char *_method = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(method));
+	//const char *_method = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(method));
+	const char *_method = gtk_entry_get_text(GTK_ENTRY(method_entry));
 
 	/* when edit window is showed by 'Add' button
 	 * Do not allow nickname exists
@@ -134,6 +149,7 @@ static void create_edit_window(GtkWidget *row)
 	localport = GTK_WIDGET(gtk_builder_get_object(builder, "localport"));
 	passwd = GTK_WIDGET(gtk_builder_get_object(builder, "passwd"));
 	method = GTK_WIDGET(gtk_builder_get_object(builder, "method"));
+	method_entry = GTK_WIDGET(gtk_builder_get_object(builder, "method-entry"));
 
 	for (int i = 0; i < sizeof(methods)/sizeof(methods[0]); i++) {
 		gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(method), NULL, methods[i]);
@@ -183,6 +199,7 @@ void on_btn_del_clicked(GtkButton *button, gpointer user_data)
 
 	if (core_server_del(server) == 0) {
 		gtk_container_remove(GTK_CONTAINER(listbox), GTK_WIDGET(row));
+		update_defserver_menu_list();
 	}
 }
 

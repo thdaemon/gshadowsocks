@@ -47,9 +47,10 @@ void conf_set_string(GKeyFile *kfile, const gchar *key, const gchar *value)
 
 gboolean conf_close(GKeyFile *kfile, const gchar *file)
 {
-	gboolean ret;
+	gboolean ret = TRUE;
 
-	ret = g_key_file_save_to_file(kfile, file, NULL);
+	if (file != NULL)
+		ret = g_key_file_save_to_file(kfile, file, NULL);
 	g_key_file_free(kfile);
 
 	return ret;
