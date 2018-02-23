@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #define _XOPEN_SOURCE 700
+#define _BSD_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -151,6 +152,7 @@ int core_start_sslocal()
 	char path[2048];
 
 	snprintf(path, 2048, "%sssconf.gen", workdir);
+
 	if (ssproc == NULL) {
 		ssproc = g_subprocess_new(G_SUBPROCESS_FLAGS_NONE, NULL,
 					  "ss-local", "-c", path, NULL);
@@ -164,6 +166,8 @@ void core_stop_sslocal()
 {
 	if (ssproc) {
 		g_subprocess_send_signal(ssproc, SIGTERM);
+		usleep(100);
 		g_subprocess_force_exit(ssproc);
+		ssproc = NULL;
 	}
 }

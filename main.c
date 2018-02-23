@@ -33,17 +33,17 @@ static const char *defserver;
 static int do_ss_conn()
 {
 	if (defserver == NULL) {
-		diag_warning_show("Please add a shadowsocks server first.");
+		diag_warning_show(NULL, "Please add a shadowsocks server first.");
 		return -1;
 	}
 
 	if (core_sconf_gen(defserver) < 0) {
-		diag_warning_show("Can not generate shadowsocks config file.");
+		diag_warning_show(NULL, "Can not generate shadowsocks config file.");
 		return -1;
 	}
 
 	if (core_start_sslocal() < 0) {
-		diag_warning_show("Can not generate shadowsocks config file.");
+		diag_warning_show(NULL, "Start ss-local server failed.");
 		return -1;
 	}
 
@@ -52,7 +52,7 @@ static int do_ss_conn()
 
 static int do_ss_disconn()
 {
-
+	core_stop_sslocal();
 	return 0;
 }
 
@@ -60,12 +60,17 @@ static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
 {
 	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
 
-	if (ss_conn && (do_ss_conn() < 0)) {
-		ss_conn = 0;
-		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuitem), FALSE);
-		return;
-	} else {
+	switch (ss_conn) {
+	case 1:
+		if (do_ss_conn() < 0) {
+			ss_conn = 0;
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuitem), FALSE);
+			return;
+		}
+		break;
+	case 0:
 		do_ss_disconn();
+		break;
 	}
 
 	need_update = 1;
@@ -139,7 +144,7 @@ void update_defserver_menu_list()
 		if (dent->d_name[0] != '.') {
 			gboolean checked = FALSE;
 
-			if (strcmp(dent->d_name, defserver) == 0) {
+			if (defserver && (strcmp(dent->d_name, defserver) == 0)) {
 				flag_have_defserver = 1;
 				checked = TRUE;
 			}
@@ -158,12 +163,13 @@ void update_defserver_menu_list()
 	if (flag_have_item) {
 		gtk_widget_set_sensitive(defserver_menu, TRUE);
 		gtk_menu_item_set_submenu(GTK_MENU_ITEM(defserver_menu), submenu);
+
+		if (!flag_have_defserver) {
+			defserver = gtk_menu_item_get_label(GTK_MENU_ITEM(first));
+		}
 	} else {
 		gtk_widget_set_sensitive(defserver_menu, FALSE);
-	}
-
-	if (!flag_have_defserver && flag_have_item) {
-		defserver = gtk_menu_item_get_label(GTK_MENU_ITEM(first));
+		defserver = NULL;
 	}
 
 	closedir(dir);

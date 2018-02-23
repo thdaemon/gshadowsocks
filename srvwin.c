@@ -17,6 +17,7 @@
 
 #include "srvwin.h"
 #include "paths.h"
+#include "diaghelper.h"
 #include "conf.h"
 #include "core.h"
 
@@ -55,7 +56,7 @@ static void add_listbox_item(GtkWidget *lb, const gchar *text)
 	GtkWidget *item = gtk_label_new(text);
 
 	gtk_label_set_justify(GTK_LABEL(item), GTK_JUSTIFY_LEFT);
-	//gtk_widget_set_valign(item, GTK_ALIGN_START);
+	gtk_widget_set_valign(item, GTK_ALIGN_START);
 	gtk_widget_set_halign(item, GTK_ALIGN_START);
 
 	gtk_widget_set_margin_top(item, 4);
@@ -124,14 +125,7 @@ static void on_edit_btn_ok_clicked(GtkButton *button, gpointer user_data)
 	 * Do not allow nickname exists
 	 */
 	if ((user_data == NULL) && (core_server_exists(_nick) == 0)) {
-		GtkWidget *msgdialog;
-		msgdialog = gtk_message_dialog_new(GTK_WINDOW(edit_window),
-						   GTK_DIALOG_MODAL,
-						   GTK_MESSAGE_WARNING,
-						   GTK_BUTTONS_CLOSE,
-						   "This nickname is exists.");
-		gtk_dialog_run(GTK_DIALOG(msgdialog));
-		gtk_widget_destroy(msgdialog);
+		diag_warning_show(edit_window, "This nickname is exists.");
 		return;
 	}
 

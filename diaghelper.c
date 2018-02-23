@@ -15,11 +15,12 @@
 
 #include <gtk/gtk.h>
 
-void diag_warning_show(const gchar *msg)
+void diag_warning_show(GtkWidget *win, const gchar *msg)
 {
 	GtkWidget *msgdialog;
 
-	msgdialog = gtk_message_dialog_new(NULL, 0,
+	msgdialog = gtk_message_dialog_new(win ? GTK_WINDOW(win) : NULL,
+					   win ? GTK_DIALOG_MODAL : 0,
 					   GTK_MESSAGE_WARNING,
 					   GTK_BUTTONS_OK,
 					   "%s", msg);
