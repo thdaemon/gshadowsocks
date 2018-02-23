@@ -22,6 +22,7 @@
 #include "srvwin.h"
 #include "conf.h"
 #include "menuhelper.h"
+#include "diaghelper.h"
 
 static GtkWidget *defserver_menu;
 
@@ -29,13 +30,45 @@ static char need_update = 0;
 static int proxy_mode, ss_conn, sys_proxy;
 static const char *defserver;
 
+static int do_ss_conn()
+{
+	if (defserver == NULL) {
+		diag_warning_show("Please add a shadowsocks server first.");
+		return -1;
+	}
+
+	if (core_sconf_gen(defserver) < 0) {
+		diag_warning_show("Can not generate shadowsocks config file.");
+		return -1;
+	}
+
+	if (core_start_sslocal() < 0) {
+		diag_warning_show("Can not generate shadowsocks config file.");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int do_ss_disconn()
+{
+
+	return 0;
+}
+
 static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
 {
 	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
-	need_update = 1;
 
-	core_sconf_gen(defserver);
-	core_start_sslocal();
+	if (ss_conn && (do_ss_conn() < 0)) {
+		ss_conn = 0;
+		gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuitem), FALSE);
+		return;
+	} else {
+		do_ss_disconn();
+	}
+
+	need_update = 1;
 }
 
 static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)

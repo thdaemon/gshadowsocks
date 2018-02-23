@@ -3,7 +3,7 @@ INSTALLDIR := /bin
 INSTALLDIR_LIB := /lib
 DATADIR := /share
 
-OBJS := main.o core.o path.o conf.o menuhelper.o srvwin.o
+OBJS := main.o core.o path.o conf.o menuhelper.o diaghelper.o srvwin.o
 
 INSTALL_BINS := gssocks
 
