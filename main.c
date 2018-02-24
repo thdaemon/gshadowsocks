@@ -132,7 +132,13 @@ void update_defserver_menu_list()
 	int flag_have_defserver = 0;
 	GSList *group = NULL;
 	GtkWidget *first;
-	GtkWidget *submenu = gtk_menu_new();
+	GtkWidget *submenu;
+
+	submenu = gtk_menu_item_get_submenu(GTK_MENU_ITEM(defserver_menu));
+	if (submenu != NULL)
+		gtk_widget_destroy(submenu);
+
+	submenu = gtk_menu_new();
 
 	DIR* dir;
 	struct dirent *dent;
@@ -194,6 +200,10 @@ int main(int argc, char **argv)
 	ss_conn = conf_get_int(kfile, CONF_SS_CONN);
 	sys_proxy = conf_get_int(kfile, CONF_SP_SET);
 	defserver = conf_get_string(kfile, CONF_DEFAULT_SERVER);
+
+	if (ss_conn && (do_ss_conn() < 0)) {
+		ss_conn = 0;
+	}
 
 	indicator = app_indicator_new("gshadowsock-tray-icon-id", "gshadowsocks",
 				      APP_INDICATOR_CATEGORY_APPLICATION_STATUS);

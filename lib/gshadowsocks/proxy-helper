@@ -5,6 +5,15 @@
 socks="$2"
 port="$3"
 
+getconfighome()
+{
+	if [ -z "${XDG_CONFIG_HOME}" ]; then
+		echo -n "${HOME}/.config"
+	else
+		echo -n "${XDG_CONFIG_HOME}"
+	fi
+}
+
 clear_proxy()
 {
 	gsettings set org.gnome.system.proxy mode 'none'
@@ -13,7 +22,7 @@ clear_proxy()
 
 set_proxy_pac()
 {
-	gsettings set org.gnome.system.proxy autoconfig-url
+	gsettings set org.gnome.system.proxy "`getconfighome`/gshadowsocks/pac.gen"
 	gsettings set org.gnome.system.proxy mode 'auto'
 	return $?
 }
