@@ -6,6 +6,15 @@ A free GTK+ frontend of the shadowsocks client.
 
 ![Screenshot](https://raw.githubusercontent.com/thdaemon/gshadowsocks/unusable/img/screenshot.png)
 
+Install the dependent packages
+
+```
+# for Debian, Ubuntu, etc
+sudo apt install build-essential libgtk-3-dev libappindicator3-dev
+```
+
+And you need install [shadowsocks-libev](https://github.com/shadowsocks/shadowsocks-libev).
+
 To install this program, run
 
 ```
