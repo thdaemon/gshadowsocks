@@ -1,0 +1,18 @@
+#!/bin/sh
+
+prefix="$1"
+port="$2"
+
+getconfighome()
+{
+	if [ -z "${XDG_CONFIG_HOME}" ]; then
+		echo -n "${HOME}/.config"
+	else
+		echo -n "${XDG_CONFIG_HOME}"
+	fi
+}
+
+pacfile="`getconfighome`/gshadowsocks/pac.gen"
+seds="s/__PROXY_SERVER_PORT__/${port}/g"
+
+cat "${prefix}/share/gshadowsocks/PAC/default" | sed "$seds" > "${pacfile}"

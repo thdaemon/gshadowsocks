@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# only for gnome, unity, etc.
+
+port="$2"
+
+getconfighome()
+{
+	if [ -z "${XDG_CONFIG_HOME}" ]; then
+		echo -n "${HOME}/.config"
+	else
+		echo -n "${XDG_CONFIG_HOME}"
+	fi
+}
+
+clear_proxy()
+{
+	gsettings set org.gnome.system.proxy mode 'none'
+	return $?
+}
+
+set_proxy_pac()
+{
+	gsettings set org.gnome.system.proxy autoconfig-url "`getconfighome`/gshadowsocks/pac.gen"
+	gsettings set org.gnome.system.proxy mode 'auto'
+	return $?
+}
+
+set_proxy_global()
+{
+	gsettings set org.gnome.system.proxy.http host ''
+	gsettings set org.gnome.system.proxy.http port ''
+	gsettings set org.gnome.system.proxy.https host ''
+	gsettings set org.gnome.system.proxy.https port ''
+	gsettings set org.gnome.system.proxy.ftp host ''
+	gsettings set org.gnome.system.proxy.ftp port ''
+	gsettings set org.gnome.system.proxy.socks host "127.0.0.1"
+	gsettings set org.gnome.system.proxy.socks port "$port"
+
+	gsettings set org.gnome.system.proxy use-same-proxy 'false'
+	gsettings set org.gnome.system.proxy mode 'manual'
+	return $?
+}
+
+
+case $1 in
+'-1')
+	clear_proxy
+	exit $?
+	;;
+'0')
+	set_proxy_pac
+	exit $?
+	;;
+'1')
+	set_proxy_global
+	exit $?
+	;;
+esac
+
