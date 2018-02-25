@@ -2,9 +2,19 @@
 
 A free GTK+ frontend of the shadowsocks client.
 
-**WARNNING The basic work of this project has not been completed, Now the basic functions can not be used yet!!!**
+**THIS PROGRAM IS IN TESTING**
 
-to test code:
+![Screenshot](https://raw.githubusercontent.com/thdaemon/gshadowsocks/unusable/img/screenshot.png)
+
+To install this program, run
+
+```
+make defconfig
+make
+sudo make install
+```
+
+To build but not install it, and test the program, you can run
 
 ```
 ./mkconfig.sh --prefix=`pwd`
@@ -12,9 +22,27 @@ make
 ./gssocks
 ```
 
-![Screenshot](https://raw.githubusercontent.com/thdaemon/gshadowsocks/unusable/img/screenshot.png)
+To build a .deb format package, run
 
-About the prefix and PREFIX, see [this wiki](doc/prefix-and-PREFIX.md).
+```
+make defconfig
+make
+make deb
+```
 
-**WARNNING DO NOT RUN** `make install` **YET**
+If you want to install it in `/opt/gshadowsocks` not `/usr`, run
+
+```
+./mkconfig.sh --prefix=/opt/gshadowsocks
+make
+sudo make PREFIX=/opt/gshadowsocks install
+```
+
+**NOTE** About the prefix and PREFIX, see [this wiki](doc/prefix-and-PREFIX.md).
+
+## License
+
+This program is distributed in the hope that it  will be useful, but WITHOUT ANY WARRANTY.
+
+This software is licensed under the GNU GPLv3 and you can also use newer versions license. see [LICENSE file](LICENSE)
  
