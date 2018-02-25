@@ -21,6 +21,7 @@
 #include "paths.h"
 #include "srvwin.h"
 #include "conf.h"
+#include "core.h"
 #include "menuhelper.h"
 #include "diaghelper.h"
 
@@ -56,6 +57,14 @@ static int do_ss_disconn()
 	return 0;
 }
 
+static int do_sys_proxy()
+{
+	if (proxy_mode == PROXY_HELPER_OPCODE_PAC)
+		core_pac_update(defserver);
+	core_proxy_helper(proxy_mode, defserver);
+	return 0;
+}
+
 static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
 {
 	ss_conn = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
@@ -79,6 +88,21 @@ static void mevt_ss_conn(GtkMenuItem *menuitem, gpointer user_data)
 static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)
 {
 	sys_proxy = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
+
+	if (defserver == NULL) {
+		diag_warning_show(NULL, "Please add a shadowsocks server first.");
+		return;
+	}
+
+	switch (sys_proxy) {
+	case 1:
+		do_sys_proxy();
+		break;
+	case 0:
+		core_proxy_helper(PROXY_HELPER_OPCODE_CLEAR, 0);
+		break;
+	}
+
 	need_update = 1;
 }
 
@@ -101,7 +125,7 @@ static void mevt_defserv(GtkMenuItem *menuitem, gpointer user_data)
 
 static void mevt_gfwlist(GtkMenuItem *menuitem, gpointer user_data)
 {
-
+	diag_warning_show(NULL, "This feature is not implemented");
 }
 
 static void mevt_about(GtkMenuItem *menuitem, gpointer user_data)
@@ -205,6 +229,10 @@ int main(int argc, char **argv)
 		ss_conn = 0;
 	}
 
+	if (sys_proxy && (do_sys_proxy() < 0)) {
+		sys_proxy = 0;
+	}
+
 	indicator = app_indicator_new("gshadowsock-tray-icon-id", "gshadowsocks",
 				      APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
 
@@ -240,6 +268,8 @@ int main(int argc, char **argv)
 
 	gtk_main();
 
+	do_ss_disconn();
+	core_proxy_helper(PROXY_HELPER_OPCODE_CLEAR, 0);
 	if (need_update) {
 		conf_set_int(kfile, CONF_PROXY_MODE, proxy_mode);
 		conf_set_int(kfile, CONF_SS_CONN, ss_conn);

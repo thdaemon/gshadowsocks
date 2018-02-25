@@ -168,6 +168,83 @@ void core_stop_sslocal()
 		g_subprocess_send_signal(ssproc, SIGTERM);
 		usleep(100);
 		g_subprocess_force_exit(ssproc);
+		g_object_unref(ssproc);
 		ssproc = NULL;
 	}
 }
+
+int core_pac_update(const char *srvname)
+{
+	int ret = 0;
+	char path[2048];
+	GKeyFile *kfile;
+	const char *port;
+	GSubprocess *subp;
+	GCancellable *cable;
+
+	snprintf(path, 2048, "%s/%s", srvdir, srvname);
+
+	kfile = conf_open(path);
+	port = conf_get_string(kfile, SERVER_LOCAL_PORT);
+
+	cable = g_cancellable_new();
+	subp = g_subprocess_new(G_SUBPROCESS_FLAGS_NONE, NULL,
+				UPDATE_PAC_PATH, CONFIG_PREFIX, port, NULL);
+
+	g_subprocess_wait(subp, cable, NULL);
+
+	if (!g_subprocess_get_if_exited(subp)) {
+		ret = -1;
+		goto fail;
+	}
+
+	if (g_subprocess_get_exit_status(subp) != 0) {
+		ret = -1;
+		goto fail;
+	}
+
+fail:
+	conf_close(kfile, NULL);
+	g_object_unref(subp);
+	g_object_unref(cable);
+	return ret;
+}
+
+int core_proxy_helper(int opcode, const char *srvname)
+{
+	int ret = 0;
+	char _opcode[25];
+	char path[2048];
+	GKeyFile *kfile;
+	const char *port;
+	GSubprocess *subp;
+	GCancellable *cable;
+
+	kfile = conf_open(path);
+	port = conf_get_string(kfile, SERVER_LOCAL_PORT);
+
+	snprintf(_opcode, 25, "%d", opcode);
+
+	cable = g_cancellable_new();
+	subp = g_subprocess_new(G_SUBPROCESS_FLAGS_NONE, NULL,
+				PROXY_HELPER_PATH, _opcode, port, NULL);
+
+	g_subprocess_wait(subp, cable, NULL);
+
+	if (!g_subprocess_get_if_exited(subp)) {
+		ret = -1;
+		goto fail;
+	}
+
+	if (g_subprocess_get_exit_status(subp) != 0) {
+		ret = -1;
+		goto fail;
+	}
+
+fail:
+	conf_close(kfile, NULL);
+	g_object_unref(subp);
+	g_object_unref(cable);
+	return ret;
+}
+
