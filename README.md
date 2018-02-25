@@ -1,4 +1,4 @@
-# gshadowsocks (Work is not completed)
+# gshadowsocks
 
 A free GTK+ frontend of the shadowsocks client.
 
@@ -45,4 +45,11 @@ sudo make PREFIX=/opt/gshadowsocks install
 This program is distributed in the hope that it  will be useful, but WITHOUT ANY WARRANTY.
 
 This software is licensed under the GNU GPLv3 and you can also use newer versions license. see [LICENSE file](LICENSE)
- 
+
+## TODO List
+
+- [x] Make a basic usable version
+- [ ] Optimize ugly code
+- [ ] Implement "Update GFWList"
+- [ ] Create a Github pages of the project
+- [ ] Add automatical starting feature
