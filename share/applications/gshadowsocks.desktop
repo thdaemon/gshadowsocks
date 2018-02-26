@@ -2,7 +2,7 @@
 Name=gshadowsocks
 GenericName=Secure Proxy
 Comment=A free GTK+ frontend of the shadowsocks client.
-Exec=gshadowsocks
+Exec=gssocks
 Terminal=false
 Type=Application
 StartupNotify=true

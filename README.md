@@ -55,6 +55,10 @@ This program is distributed in the hope that it  will be useful, but WITHOUT ANY
 
 This software is licensed under the GNU GPLv3 and you can also use newer versions license. see [LICENSE file](LICENSE)
 
+Icon files in `/share/gshadowsocks/icon/` are from [shadowsocks-windows](https://github.com/shadowsocks/shadowsocks-windows) project and it is licensed under GPLv3.
+
+Icon files in `/share/pixmaps` are from [ShadowsocksX-NG](https://github.com/shadowsocks/ShadowsocksX-NG) project and it is licensed under GPLv3.
+
 ## TODO List
 
 - [x] Make a basic usable version
