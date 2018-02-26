@@ -265,6 +265,7 @@ int main(int argc, char **argv)
 	app_indicator_set_menu(indicator, GTK_MENU(menu));
 
 	gtk_widget_show_all(menu);
+	gdk_notify_startup_complete();
 
 	gtk_main();
 
