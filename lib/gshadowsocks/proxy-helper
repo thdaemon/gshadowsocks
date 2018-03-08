@@ -19,26 +19,27 @@ clear_proxy()
 	return $?
 }
 
-set_proxy_pac()
-{
-	gsettings set org.gnome.system.proxy autoconfig-url "`getconfighome`/gshadowsocks/pac.gen"
-	gsettings set org.gnome.system.proxy mode 'auto'
-	return $?
-}
-
 set_proxy_global()
 {
 	gsettings set org.gnome.system.proxy.http host ''
-	gsettings set org.gnome.system.proxy.http port ''
+	gsettings set org.gnome.system.proxy.http port '0'
 	gsettings set org.gnome.system.proxy.https host ''
-	gsettings set org.gnome.system.proxy.https port ''
+	gsettings set org.gnome.system.proxy.https port '0'
 	gsettings set org.gnome.system.proxy.ftp host ''
-	gsettings set org.gnome.system.proxy.ftp port ''
+	gsettings set org.gnome.system.proxy.ftp port '0'
 	gsettings set org.gnome.system.proxy.socks host "127.0.0.1"
 	gsettings set org.gnome.system.proxy.socks port "$port"
 
 	gsettings set org.gnome.system.proxy use-same-proxy 'false'
 	gsettings set org.gnome.system.proxy mode 'manual'
+	return $?
+}
+
+set_proxy_pac()
+{
+	set_proxy_global
+	gsettings set org.gnome.system.proxy autoconfig-url "`getconfighome`/gshadowsocks/pac.gen"
+	gsettings set org.gnome.system.proxy mode 'auto'
 	return $?
 }
 

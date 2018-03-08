@@ -173,23 +173,15 @@ void core_stop_sslocal()
 	}
 }
 
-int core_pac_update(const char *srvname)
+int core_pac_update()
 {
 	int ret = 0;
-	char path[2048];
-	GKeyFile *kfile;
-	const char *port;
 	GSubprocess *subp;
 	GCancellable *cable;
 
-	snprintf(path, 2048, "%s/%s", srvdir, srvname);
-
-	kfile = conf_open(path);
-	port = conf_get_string(kfile, SERVER_LOCAL_PORT);
-
 	cable = g_cancellable_new();
 	subp = g_subprocess_new(G_SUBPROCESS_FLAGS_NONE, NULL,
-				UPDATE_PAC_PATH, CONFIG_PREFIX, port, NULL);
+				UPDATE_PAC_PATH, CONFIG_PREFIX, NULL);
 
 	g_subprocess_wait(subp, cable, NULL);
 
@@ -204,7 +196,6 @@ int core_pac_update(const char *srvname)
 	}
 
 fail:
-	conf_close(kfile, NULL);
 	g_object_unref(subp);
 	g_object_unref(cable);
 	return ret;

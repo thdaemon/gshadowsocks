@@ -59,6 +59,11 @@ static int do_ss_disconn()
 
 static int do_sys_proxy()
 {
+	if (defserver == NULL) {
+		diag_warning_show(NULL, "Please add a shadowsocks server first.");
+		return -1;
+	}
+
 	if (proxy_mode == PROXY_HELPER_OPCODE_PAC)
 		core_pac_update(defserver);
 	core_proxy_helper(proxy_mode, defserver);
@@ -89,14 +94,12 @@ static void mevt_sys_proxy(GtkMenuItem *menuitem, gpointer user_data)
 {
 	sys_proxy = (int)gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(menuitem));
 
-	if (defserver == NULL) {
-		diag_warning_show(NULL, "Please add a shadowsocks server first.");
-		return;
-	}
-
 	switch (sys_proxy) {
 	case 1:
-		do_sys_proxy();
+		if (do_sys_proxy() < 0) {
+			sys_proxy = 0;
+			gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menuitem), FALSE);
+		}
 		break;
 	case 0:
 		core_proxy_helper(PROXY_HELPER_OPCODE_CLEAR, 0);

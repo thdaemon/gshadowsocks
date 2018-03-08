@@ -62,7 +62,7 @@ Icon files in `/share/pixmaps` are from [ShadowsocksX-NG](https://github.com/sha
 ## TODO List
 
 - [x] Make a basic usable version
-- [ ] Optimize ugly code
+- [x] Optimize ugly code
 - [ ] Implement "Update GFWList"
 - [ ] Create a Github pages of the project
 - [ ] Add automatical starting feature
