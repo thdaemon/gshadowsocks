@@ -56,3 +56,6 @@ defconfig :
 clean:
 	rm -f *.o gssocks config.h *.so
 	rm -rf build-package
+
+git-addtag:
+	git tag `cat version`
