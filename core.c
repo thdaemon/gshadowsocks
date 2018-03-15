@@ -211,6 +211,8 @@ int core_proxy_helper(int opcode, const char *srvname)
 	GSubprocess *subp;
 	GCancellable *cable;
 
+	snprintf(path, 2048, "%s/%s", srvdir, srvname);
+
 	kfile = conf_open(path);
 	port = conf_get_string(kfile, SERVER_LOCAL_PORT);
 
